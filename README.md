@@ -37,7 +37,7 @@ We accept donations through these channels:
 
 ## Author
 
-**WebScreenshot** © [yiyun](https://github.com/yiyungent), Released under the [Apache-2.0](./LICENSE) License.<br>
+**WebScreenshot** © [yiyun](https://github.com/yiyungent), Released under the [MIT](./LICENSE) License.<br>
 Authored and maintained by yiyun with help from contributors ([list](https://github.com/yiyungent/WebScreenshot/contributors)).
 
 > GitHub [@yiyungent](https://github.com/yiyungent) Gitee [@yiyungent](https://gitee.com/yiyungent)
