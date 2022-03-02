@@ -60,7 +60,7 @@ namespace WebScreenshot.Controllers
                     var cacheEntryOptions = new MemoryCacheEntryOptions()
                         // Keep in cache for this time, reset time if accessed.
                         //.SetSlidingExpiration(TimeSpan.FromSeconds(3));
-                        .SetAbsoluteExpiration(DateTimeOffset.Now.AddHours(1));
+                        .SetAbsoluteExpiration(DateTimeOffset.Now.AddMinutes(_settingsModel.CacheMinutes));
 
                     // Save data in cache.
                     _cache.Set(screenshotCacheKey, cacheEntry, cacheEntryOptions);
