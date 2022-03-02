@@ -16,7 +16,7 @@ ASP.NET Core + Selenium 实现 网页截图
 ## Quick Start
 
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fyiyungent%2FWebScreenshot&envs=WEBSCREENSHOT_CACHEMINUTES%2CASPNETCORE_URLS%2CASPNETCORE_ENVIRONMENT%2CTZ&optionalEnvs=WEBSCREENSHOT_CACHEMINUTES&WEBSCREENSHOT_CACHEMINUTESDesc=%E6%88%AA%E5%9B%BE%E7%BC%93%E5%AD%98%E6%97%B6%E9%97%B4+%28+%E5%88%86%E9%92%9F+%29&ASPNETCORE_URLSDesc=%E4%BD%BF%E7%94%A8+Railway+%E5%BF%85%E5%A1%AB&ASPNETCORE_ENVIRONMENTDesc=ASP.NET+Core+%E7%8E%AF%E5%A2%83&TZDesc=%E6%97%B6%E5%8C%BA&WEBSCREENSHOT_CACHEMINUTESDefault=60&ASPNETCORE_URLSDefault=http%3A%2F%2F*%3A80&ASPNETCORE_ENVIRONMENTDefault=Production&TZDefault=Asia%2FShanghai&referralCode=8eKBDA)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fyiyungent%2FWebScreenshot&envs=WEBSCREENSHOT_CACHEMINUTES&optionalEnvs=WEBSCREENSHOT_CACHEMINUTES&WEBSCREENSHOT_CACHEMINUTESDesc=%E6%88%AA%E5%9B%BE%E7%BC%93%E5%AD%98+%28+%E5%88%86%E9%92%9F+%29&WEBSCREENSHOT_CACHEMINUTESDefault=60&referralCode=8eKBDA)
 
 
 ## Demo
