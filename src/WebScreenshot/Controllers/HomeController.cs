@@ -91,7 +91,11 @@ namespace WebScreenshot.Controllers
 
             //string chromeDriverDir = "./chromedriver";
 
-            var driver = new ChromeDriver(chromeDriverDirectory: _settingsModel.ChromeDriverDirectory, options);
+            //var driver = new ChromeDriver(chromeDriverDirectory: _settingsModel.ChromeDriverDirectory, options);
+            // "/app/tools/selenium/"
+            // TODO: debug 过, 明明 _settingsModel.ChromeDriverDirectory 不为 null, 但 railway 就是报错, 于是写死
+            // System.ArgumentException: Path to locate driver executable cannot be null or empty. (Parameter 'servicePath')
+            var driver = new ChromeDriver(chromeDriverDirectory: "/app/tools/selenium/", options);
             driver.Navigate().GoToUrl(url);
 
             // https://www.selenium.dev/documentation/webdriver/browser/windows/
