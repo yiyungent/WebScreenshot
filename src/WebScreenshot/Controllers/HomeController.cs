@@ -31,6 +31,19 @@ namespace WebScreenshot.Controllers
             {
                 _settingsModel.ChromeDriverDirectory = chromeDriverDirectory;
             }
+            string cacheMode = Environment.GetEnvironmentVariable("WebScreenshot_CacheMode".ToUpper()) ?? "memory";
+            switch (cacheMode.ToLower())
+            {
+                case "memory":
+                    _settingsModel.CacheModel = "memory";
+                    break;
+                case "file":
+                    _settingsModel.CacheModel = "file";
+                    break;
+                default:
+                    _settingsModel.CacheModel = "memory";
+                    break;
+            }
             #endregion
 
         }
@@ -48,24 +61,19 @@ namespace WebScreenshot.Controllers
             {
                 byte[] cacheEntry = null;
 
-                #region Cache 控制
-                string screenshotCacheKey = $"{CacheKeys.Entry}_{url}";
-                // Look for cache key.
-                if (!_cache.TryGetValue(screenshotCacheKey, out cacheEntry))
+                switch (_settingsModel.CacheModel)
                 {
-                    // Key not in cache, so get data.
-                    cacheEntry = SaveScreenshot(url);
-
-                    // Set cache options.
-                    var cacheEntryOptions = new MemoryCacheEntryOptions()
-                        // Keep in cache for this time, reset time if accessed.
-                        //.SetSlidingExpiration(TimeSpan.FromSeconds(3));
-                        .SetAbsoluteExpiration(DateTimeOffset.Now.AddMinutes(_settingsModel.CacheMinutes));
-
-                    // Save data in cache.
-                    _cache.Set(screenshotCacheKey, cacheEntry, cacheEntryOptions);
+                    case "memory":
+                        MemoryCache(out cacheEntry, url);
+                        break;
+                    case "file":
+                        FileCache(out cacheEntry, url);
+                        break;
+                    default:
+                        MemoryCache(out cacheEntry, url);
+                        break;
                 }
-                #endregion
+
 
                 return File(cacheEntry, "image/png", true);
             }
@@ -75,6 +83,81 @@ namespace WebScreenshot.Controllers
             }
 
             return Content("出错啦!");
+        }
+
+        [NonAction]
+        private void FileCache(out byte[] cacheEntry, string url)
+        {
+            string key = Request.QueryString.Value ?? "";
+
+            Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} FileCache: {key}");
+
+            #region Cache 控制
+            string screenshotCacheKey = Utils.Md5Util.MD5Encrypt32($"{CacheKeys.Entry}_{key}");
+            string screenshotCacheFileDir = Path.Combine(Directory.GetCurrentDirectory(), "FileCache");
+            if (!Directory.Exists(screenshotCacheFileDir))
+            {
+                Directory.CreateDirectory(screenshotCacheFileDir);
+            }
+            string screenshotCacheFilePath = Path.Combine(screenshotCacheFileDir, screenshotCacheKey);
+            // Look for cache key.
+            if (!System.IO.File.Exists(screenshotCacheFilePath))
+            {
+                // Key not in cache, so get data.
+                cacheEntry = SaveScreenshot(url);
+
+                // Save data in cache.
+                System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
+            }
+            else
+            {
+                // 缓存文件存在
+                DateTime fileCreateTime = System.IO.File.GetCreationTime(screenshotCacheFilePath);
+                if (DateTime.Now > fileCreateTime.AddMinutes(_settingsModel.CacheMinutes))
+                {
+                    // 过期缓存
+                    Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} FileCache: 过期缓存: {key}");
+
+                    // 注意: 一定要先删除, 直接覆盖, 不会更新 文件创建时间
+                    System.IO.File.Delete(screenshotCacheFilePath);
+                    cacheEntry = SaveScreenshot(url);
+                    System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
+                }
+                else
+                {
+                    // 未过期缓存
+                    cacheEntry = System.IO.File.ReadAllBytes(screenshotCacheFilePath);
+                }
+            }
+
+            #endregion
+        }
+
+        [NonAction]
+        private void MemoryCache(out byte[] cacheEntry, string url)
+        {
+            string key = Request.QueryString.Value ?? "";
+
+            Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} MemoryCache: {key}");
+
+            #region Cache 控制
+            string screenshotCacheKey = $"{CacheKeys.Entry}_{key}";
+            // Look for cache key.
+            if (!_cache.TryGetValue(screenshotCacheKey, out cacheEntry))
+            {
+                // Key not in cache, so get data.
+                cacheEntry = SaveScreenshot(url);
+
+                // Set cache options.
+                var cacheEntryOptions = new MemoryCacheEntryOptions()
+                    // Keep in cache for this time, reset time if accessed.
+                    //.SetSlidingExpiration(TimeSpan.FromSeconds(3));
+                    .SetAbsoluteExpiration(DateTimeOffset.Now.AddMinutes(_settingsModel.CacheMinutes));
+
+                // Save data in cache.
+                _cache.Set(screenshotCacheKey, cacheEntry, cacheEntryOptions);
+            }
+            #endregion
         }
 
         [NonAction]
