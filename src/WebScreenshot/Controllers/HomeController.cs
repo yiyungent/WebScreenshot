@@ -87,13 +87,13 @@ namespace WebScreenshot.Controllers
                 switch (_settingsModel.CacheModel)
                 {
                     case "memory":
-                        MemoryCache(out cacheEntry, url: url, jsStr: jsStr);
+                        MemoryCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr);
                         break;
                     case "file":
-                        FileCache(out cacheEntry, url: url, jsStr: jsStr);
+                        FileCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr);
                         break;
                     default:
-                        MemoryCache(out cacheEntry, url: url, jsStr: jsStr);
+                        MemoryCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr);
                         break;
                 }
 
@@ -109,7 +109,7 @@ namespace WebScreenshot.Controllers
         }
 
         [NonAction]
-        private void FileCache(out byte[] cacheEntry, string url, string jsStr)
+        private void FileCache(out byte[] cacheEntry, string url, string jsurl, string jsStr)
         {
             string key = Request.QueryString.Value ?? "";
 
@@ -127,7 +127,7 @@ namespace WebScreenshot.Controllers
             if (!System.IO.File.Exists(screenshotCacheFilePath))
             {
                 // Key not in cache, so get data.
-                cacheEntry = SaveScreenshot(url, jsStr);
+                cacheEntry = SaveScreenshot(url: url, jsurl: jsurl, jsStr: jsStr);
 
                 // Save data in cache.
                 System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
@@ -143,7 +143,7 @@ namespace WebScreenshot.Controllers
 
                     // 注意: 一定要先删除, 直接覆盖, 不会更新 文件创建时间
                     System.IO.File.Delete(screenshotCacheFilePath);
-                    cacheEntry = SaveScreenshot(url, jsStr);
+                    cacheEntry = SaveScreenshot(url: url, jsurl: jsurl, jsStr: jsStr);
                     System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
                 }
                 else
@@ -157,7 +157,7 @@ namespace WebScreenshot.Controllers
         }
 
         [NonAction]
-        private void MemoryCache(out byte[] cacheEntry, string url, string jsStr)
+        private void MemoryCache(out byte[] cacheEntry, string url, string jsurl, string jsStr)
         {
             string key = Request.QueryString.Value ?? "";
 
@@ -169,7 +169,7 @@ namespace WebScreenshot.Controllers
             if (!_cache.TryGetValue(screenshotCacheKey, out cacheEntry))
             {
                 // Key not in cache, so get data.
-                cacheEntry = SaveScreenshot(url, jsStr);
+                cacheEntry = SaveScreenshot(url: url, jsurl: jsurl, jsStr: jsStr);
 
                 // Set cache options.
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
@@ -184,7 +184,7 @@ namespace WebScreenshot.Controllers
         }
 
         [NonAction]
-        private byte[] SaveScreenshot(string url, string jsStr)
+        private byte[] SaveScreenshot(string url, string jsurl, string jsStr)
         {
             var options = new ChromeOptions();
             options.AddArgument("--no-sandbox");
@@ -223,7 +223,7 @@ namespace WebScreenshot.Controllers
             {
                 Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {url} : 注入 jsStr:");
                 Console.WriteLine("--------------------------------------------------------------------------------------------");
-                Console.WriteLine(jsStr);
+                Console.WriteLine($"jsStr 来自: jsurl: {jsurl}");
                 Console.WriteLine("--------------------------------------------------------------------------------------------");
 
                 driver.ExecuteScript(jsStr);
