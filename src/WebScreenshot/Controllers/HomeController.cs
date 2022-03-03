@@ -48,12 +48,35 @@ namespace WebScreenshot.Controllers
 
         }
 
-        public async Task<ActionResult> Get([FromQuery] string url = "")
+        public async Task<ActionResult> Get([FromQuery] string url = "", [FromQuery] string jsurl = "")
         {
             #region 检查url
             if (string.IsNullOrEmpty(url) || (!url.StartsWith("http://") && !url.StartsWith("https://")))
             {
                 return Content("非法 url");
+            }
+            #endregion
+
+            #region 检查jsurl
+            string jsStr = null;
+            if (!string.IsNullOrEmpty(jsurl))
+            {
+                if (!jsurl.StartsWith("http://") && !jsurl.StartsWith("https://"))
+                {
+                    return Content("非法 jsurl");
+                }
+                // 合法 jsurl
+                try
+                {
+                    jsStr = Utils.HttpUtil.HttpGet(url: jsurl);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("获取 jsurl 失败");
+                    Console.WriteLine(ex.ToString());
+
+                    return Content("获取 jsurl 失败");
+                }
             }
             #endregion
 
@@ -64,13 +87,13 @@ namespace WebScreenshot.Controllers
                 switch (_settingsModel.CacheModel)
                 {
                     case "memory":
-                        MemoryCache(out cacheEntry, url);
+                        MemoryCache(out cacheEntry, url: url, jsStr: jsStr);
                         break;
                     case "file":
-                        FileCache(out cacheEntry, url);
+                        FileCache(out cacheEntry, url: url, jsStr: jsStr);
                         break;
                     default:
-                        MemoryCache(out cacheEntry, url);
+                        MemoryCache(out cacheEntry, url: url, jsStr: jsStr);
                         break;
                 }
 
@@ -86,7 +109,7 @@ namespace WebScreenshot.Controllers
         }
 
         [NonAction]
-        private void FileCache(out byte[] cacheEntry, string url)
+        private void FileCache(out byte[] cacheEntry, string url, string jsStr)
         {
             string key = Request.QueryString.Value ?? "";
 
@@ -104,7 +127,7 @@ namespace WebScreenshot.Controllers
             if (!System.IO.File.Exists(screenshotCacheFilePath))
             {
                 // Key not in cache, so get data.
-                cacheEntry = SaveScreenshot(url);
+                cacheEntry = SaveScreenshot(url, jsStr);
 
                 // Save data in cache.
                 System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
@@ -120,7 +143,7 @@ namespace WebScreenshot.Controllers
 
                     // 注意: 一定要先删除, 直接覆盖, 不会更新 文件创建时间
                     System.IO.File.Delete(screenshotCacheFilePath);
-                    cacheEntry = SaveScreenshot(url);
+                    cacheEntry = SaveScreenshot(url, jsStr);
                     System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
                 }
                 else
@@ -134,7 +157,7 @@ namespace WebScreenshot.Controllers
         }
 
         [NonAction]
-        private void MemoryCache(out byte[] cacheEntry, string url)
+        private void MemoryCache(out byte[] cacheEntry, string url, string jsStr)
         {
             string key = Request.QueryString.Value ?? "";
 
@@ -146,7 +169,7 @@ namespace WebScreenshot.Controllers
             if (!_cache.TryGetValue(screenshotCacheKey, out cacheEntry))
             {
                 // Key not in cache, so get data.
-                cacheEntry = SaveScreenshot(url);
+                cacheEntry = SaveScreenshot(url, jsStr);
 
                 // Set cache options.
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
@@ -161,7 +184,7 @@ namespace WebScreenshot.Controllers
         }
 
         [NonAction]
-        private byte[] SaveScreenshot(string url)
+        private byte[] SaveScreenshot(string url, string jsStr)
         {
             var options = new ChromeOptions();
             options.AddArgument("--no-sandbox");
@@ -186,12 +209,25 @@ namespace WebScreenshot.Controllers
 
             driver.Navigate().GoToUrl(url);
 
+            #region 设置窗口大小
             // https://www.selenium.dev/documentation/webdriver/browser/windows/
             string widthStr = driver.ExecuteScript("return document.documentElement.scrollWidth").ToString();
             string heightStr = driver.ExecuteScript("return document.documentElement.scrollHeight").ToString();
             int width = Convert.ToInt32(widthStr);
             int height = Convert.ToInt32(heightStr);
             driver.Manage().Window.Size = new System.Drawing.Size(width, height);
+            #endregion
+
+            // 注入 jsStr
+            if (!string.IsNullOrEmpty(jsStr))
+            {
+                Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {url} : 注入 jsStr:");
+                Console.WriteLine("--------------------------------------------------------------------------------------------");
+                Console.WriteLine(jsStr);
+                Console.WriteLine("--------------------------------------------------------------------------------------------");
+
+                driver.ExecuteScript(jsStr);
+            }
 
             // 保存截图
             // https://www.selenium.dev/documentation/webdriver/browser/windows/#takescreenshot
