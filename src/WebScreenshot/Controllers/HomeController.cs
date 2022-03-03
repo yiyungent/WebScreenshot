@@ -95,7 +95,12 @@ namespace WebScreenshot.Controllers
             // "/app/tools/selenium/"
             // TODO: debug 过, 明明 _settingsModel.ChromeDriverDirectory 不为 null, 但 railway 就是报错, 于是写死
             // System.ArgumentException: Path to locate driver executable cannot be null or empty. (Parameter 'servicePath')
-            var driver = new ChromeDriver(chromeDriverDirectory: "/app/tools/selenium/", options);
+            var driver = new ChromeDriver(chromeDriverDirectory: "/app/tools/selenium/", options, TimeSpan.FromMinutes(5));
+
+            // TODO: OpenQA.Selenium.WebDriverException: The HTTP request to the remote WebDriver server for URL http://localhost:40811/session timed out after 60 seconds.
+            // 参考: https://www.itranslater.com/qa/details/2326059564510217216
+            // new ChromeDriver(chromeDriverDirectory: "/app/tools/selenium/", options, TimeSpan.FromMinutes(5));
+
             driver.Navigate().GoToUrl(url);
 
             // https://www.selenium.dev/documentation/webdriver/browser/windows/
