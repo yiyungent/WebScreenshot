@@ -9,12 +9,22 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace WebScreenshot.Controllers
 {
+    /// <summary>
+    /// 获取 Web 截图
+    /// </summary>
     [Route("")]
-    public class HomeController : Controller
+    [ApiController]
+    public class HomeController : ControllerBase
     {
         private IMemoryCache _cache;
         private readonly SettingsModel _settingsModel;
 
+        #region QueryString
+        private int _windowWidth;
+        private int _windowHeight;
+        #endregion
+
+        #region Ctor
         public HomeController(IMemoryCache memoryCache)
         {
             _cache = memoryCache;
@@ -47,8 +57,21 @@ namespace WebScreenshot.Controllers
             #endregion
 
         }
+        #endregion
 
-        public async Task<ActionResult> Get([FromQuery] string url = "", [FromQuery] string jsurl = "")
+        /// <summary>
+        /// 获取 Web 截图
+        /// </summary>
+        /// <param name="url">目标网页 url</param>
+        /// <param name="jsurl">注入js url</param>
+        /// <param name="windowWidth">浏览器窗口 宽</param>
+        /// <param name="windowHeight">浏览器窗口 高</param>
+        /// <returns>若成功, 返回 image/png 截图</returns>
+        [Route("")]
+        [HttpGet]
+        [Produces("image/png")]
+        public async Task<ActionResult> Get([FromQuery] string url = "", [FromQuery] string jsurl = "",
+            [FromQuery] int windowWidth = 0, [FromQuery] int windowHeight = 0)
         {
             #region 检查url
             if (string.IsNullOrEmpty(url) || (!url.StartsWith("http://") && !url.StartsWith("https://")))
@@ -78,6 +101,15 @@ namespace WebScreenshot.Controllers
                     return Content("获取 jsurl 失败");
                 }
             }
+            #endregion
+
+            #region 检查 windowWidith,windowHeight
+            if (windowWidth < 0 || windowHeight < 0)
+            {
+                return Content("非法 windowWidth 或 windowHeight");
+            }
+            _windowWidth = windowWidth;
+            _windowHeight = windowHeight;
             #endregion
 
             try
@@ -186,6 +218,7 @@ namespace WebScreenshot.Controllers
         [NonAction]
         private byte[] SaveScreenshot(string url, string jsurl, string jsStr)
         {
+            #region 初始化参数选项
             var options = new ChromeOptions();
             options.AddArgument("--no-sandbox");
             options.AddArgument("--disable-dev-shm-usage");
@@ -205,19 +238,30 @@ namespace WebScreenshot.Controllers
 
             // fixed: OpenQA.Selenium.WebDriverException: The HTTP request to the remote WebDriver server for URL http://localhost:40811/session timed out after 60 seconds.
             // 参考: https://www.itranslater.com/qa/details/2326059564510217216
-            // new ChromeDriver(chromeDriverDirectory: "/app/tools/selenium/", options, TimeSpan.FromMinutes(5));
+            // new ChromeDriver(chromeDriverDirectory: "/app/tools/selenium/", options, TimeSpan.FromMinutes(5)); 
+            #endregion
 
             driver.Navigate().GoToUrl(url);
 
             #region 设置窗口大小
-            // https://www.selenium.dev/documentation/webdriver/browser/windows/
-            string widthStr = driver.ExecuteScript("return document.documentElement.scrollWidth").ToString();
-            string heightStr = driver.ExecuteScript("return document.documentElement.scrollHeight").ToString();
-            int width = Convert.ToInt32(widthStr);
-            int height = Convert.ToInt32(heightStr);
-            driver.Manage().Window.Size = new System.Drawing.Size(width, height);
+            if (_windowWidth > 0 && _windowHeight > 0)
+            {
+                // 自定义
+                driver.Manage().Window.Size = new System.Drawing.Size(_windowWidth, _windowHeight);
+            }
+            else
+            {
+                // 默认
+                // https://www.selenium.dev/documentation/webdriver/browser/windows/
+                string widthStr = driver.ExecuteScript("return document.documentElement.scrollWidth").ToString();
+                string heightStr = driver.ExecuteScript("return document.documentElement.scrollHeight").ToString();
+                int width = Convert.ToInt32(widthStr);
+                int height = Convert.ToInt32(heightStr);
+                driver.Manage().Window.Size = new System.Drawing.Size(width, height);
+            }
             #endregion
 
+            #region 注入js
             // 注入 jsStr
             if (!string.IsNullOrEmpty(jsStr))
             {
@@ -228,12 +272,15 @@ namespace WebScreenshot.Controllers
 
                 driver.ExecuteScript(jsStr);
             }
+            #endregion
 
+            #region 截图
             // 保存截图
             // https://www.selenium.dev/documentation/webdriver/browser/windows/#takescreenshot
             Screenshot screenshot = (driver as ITakesScreenshot).GetScreenshot();
             // 直接用 图片数据
             byte[] rtnBytes = screenshot.AsByteArray;
+            #endregion
 
             driver.Quit();
 
