@@ -105,9 +105,13 @@ namespace WebScreenshot.Controllers
             #endregion
 
             #region 检查 windowWidith,windowHeight
-            if (windowWidth < 0 || windowHeight < 0)
+            if (windowWidth < 0)
             {
-                return Content("非法 windowWidth 或 windowHeight");
+                return Content("非法 windowWidth");
+            }
+            if (windowHeight < 0)
+            {
+                return Content("非法 windowHeight");
             }
             _windowWidth = windowWidth;
             _windowHeight = windowHeight;
@@ -245,21 +249,22 @@ namespace WebScreenshot.Controllers
             driver.Navigate().GoToUrl(url);
 
             #region 设置窗口大小
-            if (_windowWidth > 0 && _windowHeight > 0)
+            int width = _windowWidth;
+            int height = _windowHeight;
+            if (_windowWidth <= 0)
             {
-                // 自定义
-                driver.Manage().Window.Size = new System.Drawing.Size(_windowWidth, _windowHeight);
-            }
-            else
-            {
-                // 默认
-                // https://www.selenium.dev/documentation/webdriver/browser/windows/
+                // 默认 width
                 string widthStr = driver.ExecuteScript("return document.documentElement.scrollWidth").ToString();
-                string heightStr = driver.ExecuteScript("return document.documentElement.scrollHeight").ToString();
-                int width = Convert.ToInt32(widthStr);
-                int height = Convert.ToInt32(heightStr);
-                driver.Manage().Window.Size = new System.Drawing.Size(width, height);
+                width = Convert.ToInt32(widthStr);
             }
+            if (_windowHeight <= 0)
+            {
+                // 默认 height
+                string heightStr = driver.ExecuteScript("return document.documentElement.scrollHeight").ToString();
+                height = Convert.ToInt32(heightStr);
+            }
+            // https://www.selenium.dev/documentation/webdriver/browser/windows/
+            driver.Manage().Window.Size = new System.Drawing.Size(width, height);
             #endregion
 
             #region 注入js
