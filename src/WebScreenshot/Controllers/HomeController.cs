@@ -9,12 +9,13 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace WebScreenshot.Controllers
 {
+    // 注意: 不能使用 [ApiController] + ControllerBase, 因为不支持 Controller.Action 可选参数 ( string jsurl = "" ), 始终会返回 json 格式的错误信息
+
     /// <summary>
     /// 获取 Web 截图
     /// </summary>
     [Route("")]
-    [ApiController]
-    public class HomeController : ControllerBase
+    public class HomeController : Controller
     {
         private IMemoryCache _cache;
         private readonly SettingsModel _settingsModel;
