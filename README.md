@@ -23,6 +23,37 @@ ASP.NET Core + Selenium 实现 网页截图
 
 - https://webscreenshot.up.railway.app/?url=https://moeci.com
 
+- https://webscreenshot.up.railway.app/?url=https://moeci.com&windowWidth=1280
+- https://webscreenshot.up.railway.app/?url=https://www.antmoe.com/posts/21874bc7/&jsurl=https://gitee.com/yiyunLearnRepos/test/raw/master/www.antmoe.com/posts.js
+
+
+## API 文档
+
+- https://webscreenshot.up.railway.app/swagger
+
+
+## 环境变量
+
+| 环境变量名称                 | 必填 | 备注                             |
+| ---------------------------- | ---- | -------------------------------- |
+| `WEBSCREENSHOT_CACHEMINUTES` |      | 截图 缓存时间 (分钟), 默认 60    |
+| `WEBSCREENSHOT_CACHEMODE`    |      | 缓存模式, 默认 memory, 可填 file |
+
+
+
+> 注意:       
+>
+> 强烈建议 使用 `Railway` 部署的用户，设置 `WEBSCREENSHOT_CACHEMODE` 为 `file` , 降低内存占用，     
+>
+> 大多数 `出错啦!` ，都是由于内存不足
+
+
+
+> 注意:   
+>
+> 当 `Railway` 长时间 显示 `Server Error` 时，但 `Railway` 后台处于 `active`  时，说明 服务已经挂掉，  
+>
+> 你可以通过 修改 环境变量 (无需真修改，只要点击 √ 保存一次就行) 的方式，重新触发  `Deploy`
 
 
 
