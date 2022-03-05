@@ -225,9 +225,11 @@ namespace WebScreenshot.Controllers
         {
             #region 初始化参数选项
             var options = new ChromeOptions();
+            // https://stackoverflow.com/questions/59186984/selenium-common-exceptions-sessionnotcreatedexception-message-session-not-crea
             options.AddArgument("--no-sandbox");
             options.AddArgument("--disable-dev-shm-usage");
             options.AddArgument("--headless");
+            options.AddArgument("--ignore-certificate-errors");
 
             // Chrome 的启动文件路径
             // 只要正确安装的就不需要指定
