@@ -20,7 +20,7 @@ ASP.NET Core + Selenium 实现 网页截图
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?template=https%3A%2F%2Fgithub.com%2Fyiyungent%2FWebScreenshot&envs=WEBSCREENSHOT_CACHEMINUTES&optionalEnvs=WEBSCREENSHOT_CACHEMINUTES&WEBSCREENSHOT_CACHEMINUTESDesc=%E6%88%AA%E5%9B%BE%E7%BC%93%E5%AD%98+%28+%E5%88%86%E9%92%9F+%29&WEBSCREENSHOT_CACHEMINUTESDefault=60&referralCode=8eKBDA)
 
 
-### 方式2: 使用 Dockerfile
+### 方式2: 使用 Docker
 
 ```bash
 git clone git@github.com:yiyungent/WebScreenshot.git
