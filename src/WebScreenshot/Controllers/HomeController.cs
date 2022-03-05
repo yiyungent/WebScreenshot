@@ -230,6 +230,7 @@ namespace WebScreenshot.Controllers
             options.AddArgument("--disable-dev-shm-usage");
             options.AddArgument("--headless");
             options.AddArgument("--ignore-certificate-errors");
+            options.AddArgument("--disable-gpu");
 
             // Chrome 的启动文件路径
             // 只要正确安装的就不需要指定
