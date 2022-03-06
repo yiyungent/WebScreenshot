@@ -23,7 +23,10 @@ ASP.NET Core + Selenium 实现 网页截图
 ### 方式2: 使用 Docker
 
 ```bash
+# 获取源代码: 方式1: ssh 
 git clone git@github.com:yiyungent/WebScreenshot.git
+# 获取源代码: 方式2: https 
+git clone https://github.com/yiyungent/WebScreenshot.git
 
 docker build -t yiyungent/webscreenshot -f src/WebScreenshot/Dockerfile .
 
