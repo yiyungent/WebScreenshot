@@ -24,6 +24,7 @@ namespace WebScreenshot.Controllers
         private int _windowWidth;
         private int _windowHeight;
         private int _wait;
+        private int _forceWait;
         #endregion
 
         #region Ctor
@@ -74,7 +75,7 @@ namespace WebScreenshot.Controllers
         [HttpGet]
         [Produces("image/png")]
         public async Task<ActionResult> Get([FromQuery] string url = "", [FromQuery] string jsurl = "",
-            [FromQuery] int windowWidth = 0, [FromQuery] int windowHeight = 0, [FromQuery] int wait = 0)
+            [FromQuery] int windowWidth = 0, [FromQuery] int windowHeight = 0, [FromQuery] int wait = 0, [FromQuery] int forceWait = 0)
         {
             #region 检查url
             if (string.IsNullOrEmpty(url) || (!url.StartsWith("http://") && !url.StartsWith("https://")))
@@ -125,6 +126,14 @@ namespace WebScreenshot.Controllers
                 return Content("非法 wait");
             }
             _wait = wait;
+            #endregion
+
+            #region 检查 forceWait
+            if (forceWait < 0)
+            {
+                return Content("非法 forceWait");
+            }
+            _forceWait = forceWait;
             #endregion
 
             try
@@ -267,6 +276,13 @@ namespace WebScreenshot.Controllers
             #endregion
 
             driver.Navigate().GoToUrl(url);
+
+            #region 强制 wait
+            if (_forceWait > 0)
+            {
+                Thread.Sleep(TimeSpan.FromSeconds(_forceWait));
+            }
+            #endregion
 
             #region 设置窗口大小
             int width = _windowWidth;
