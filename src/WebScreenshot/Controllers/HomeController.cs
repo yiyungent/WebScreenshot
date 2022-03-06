@@ -23,6 +23,7 @@ namespace WebScreenshot.Controllers
         #region QueryString
         private int _windowWidth;
         private int _windowHeight;
+        private int _wait;
         #endregion
 
         #region Ctor
@@ -67,12 +68,13 @@ namespace WebScreenshot.Controllers
         /// <param name="jsurl">注入js url</param>
         /// <param name="windowWidth">浏览器窗口 宽</param>
         /// <param name="windowHeight">浏览器窗口 高</param>
+        /// <param name="wait">隐式等待 秒数</param>
         /// <returns>若成功, 返回 image/png 截图</returns>
         [Route("")]
         [HttpGet]
         [Produces("image/png")]
         public async Task<ActionResult> Get([FromQuery] string url = "", [FromQuery] string jsurl = "",
-            [FromQuery] int windowWidth = 0, [FromQuery] int windowHeight = 0)
+            [FromQuery] int windowWidth = 0, [FromQuery] int windowHeight = 0, [FromQuery] int wait = 0)
         {
             #region 检查url
             if (string.IsNullOrEmpty(url) || (!url.StartsWith("http://") && !url.StartsWith("https://")))
@@ -115,6 +117,14 @@ namespace WebScreenshot.Controllers
             }
             _windowWidth = windowWidth;
             _windowHeight = windowHeight;
+            #endregion
+
+            #region 检查 wait
+            if (wait < 0)
+            {
+                return Content("非法 wait");
+            }
+            _wait = wait;
             #endregion
 
             try
@@ -247,6 +257,13 @@ namespace WebScreenshot.Controllers
             // fixed: OpenQA.Selenium.WebDriverException: The HTTP request to the remote WebDriver server for URL http://localhost:40811/session timed out after 60 seconds.
             // 参考: https://www.itranslater.com/qa/details/2326059564510217216
             // new ChromeDriver(chromeDriverDirectory: "/app/tools/selenium/", options, TimeSpan.FromMinutes(5)); 
+            #endregion
+
+            #region Implicit wait
+            if (_wait > 0)
+            {
+                driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(_wait);
+            }
             #endregion
 
             driver.Navigate().GoToUrl(url);
