@@ -46,10 +46,14 @@ docker run -d -p 5004:80 -e ASPNETCORE_URLS="http://*:80" --name webscreenshot y
 - https://webscreenshot.up.railway.app/?url=https://www.antmoe.com/posts/21874bc7/&jsurl=https://gitee.com/yiyunLearnRepos/test/raw/master/www.antmoe.com/posts.js
   - 注入 js, 修改页面
 
+- https://webscreenshot-yiyun.herokuapp.com/?url=https://www.google.com
+- https://webscreenshot-yiyun.herokuapp.com/?url=https://manga.bilibili.com/mc27189/367947?from=manga_detail&windowWidth=1280&forceWait=20
+  - 强制等待 20 秒
 
 ## API 文档
 
 - https://webscreenshot.up.railway.app/swagger
+- https://webscreenshot-yiyun.herokuapp.com/swagger
 
 
 ## 环境变量
