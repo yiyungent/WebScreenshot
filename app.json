@@ -1,0 +1,26 @@
+{
+  "name": "WebScreenshot",
+  "description": "网页截图",
+  "keywords": ["yiyungent", "WebScreenshot"],
+  "website": "https://github.com/yiyungent/WebScreenshot",
+  "repository": "https://github.com/yiyungent/WebScreenshot",
+  "success_url": "/",
+  "env": {
+    "TZ": {
+      "description": "时区",
+      "value": "Asia/Shanghai"
+    },
+    "WEBSCREENSHOT_CACHEMINUTES": {
+      "description": "截图 缓存时间 (分钟), 默认 60",
+      "required": false,
+      "value": "60"
+    },
+    "WEBSCREENSHOT_CACHEMODE": {
+      "description": "缓存模式, 默认 memory, 可填 file",
+      "required": false,
+      "value": "file"
+    }
+  },
+
+  "stack": "container"
+}

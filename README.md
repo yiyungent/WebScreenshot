@@ -20,7 +20,11 @@ ASP.NET Core + Selenium 实现 网页截图
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?code=0SqcQn&referralCode=8eKBDA)
 
 
-### 方式2: 使用 Docker
+### 方式2: 使用 Heroku 免费部署
+
+[![Deploy on Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/yiyungent/WebScreenshot)
+
+### 方式3: 使用 Docker
 
 ```bash
 # 获取源代码: 方式1: ssh 
