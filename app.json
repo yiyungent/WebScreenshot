@@ -10,6 +10,10 @@
       "description": "时区",
       "value": "Asia/Shanghai"
     },
+    "ASPNETCORE_ENVIRONMENT": {
+      "description": "运行环境",
+      "value": "Production"
+    },
     "WEBSCREENSHOT_CACHEMINUTES": {
       "description": "截图 缓存时间 (分钟), 默认 60",
       "required": false,
