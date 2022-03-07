@@ -1,6 +1,6 @@
 # Heroku Dockerfile
 
-FROM yiyungent/WebScreenshot:latest
+FROM yiyungent/webscreenshot:latest
 
 ADD heroku-entrypoint.sh /heroku-entrypoint.sh
 
