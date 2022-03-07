@@ -1,10 +1,10 @@
 
-
+<h1 align="center">WebScreenshot</h1>
 
 > ASP.NET Core + Selenium 实现 网页截图
 
 [![repo size](https://img.shields.io/github/repo-size/yiyungent/WebScreenshot.svg?style=flat)]()
-[![LICENSE](https://img.shields.io/github/license/yiyungent/WebScreenshot.svg?style=flat)](https://github.com/yiyungent/WebScreenshot/blob/master/LICENSE)
+[![LICENSE](https://img.shields.io/github/license/yiyungent/WebScreenshot.svg?style=flat)](https://github.com/yiyungent/WebScreenshot/blob/main/LICENSE)
 [![QQ Group](https://img.shields.io/badge/QQ%20Group-894031109-deepgreen)](https://jq.qq.com/?_wv=1027&k=q5R82fYN)
 
 ## Introduce
@@ -81,6 +81,9 @@ docker run -d -p 5004:80 -e ASPNETCORE_URLS="http://*:80" --name webscreenshot y
 > 你可以通过 修改 环境变量 (无需真修改，只要点击 √ 保存一次就行) 的方式，重新触发  `Deploy`
 
 
+## 相关项目
+
+- [yiyungent/Dragonfly](https://github.com/yiyungent/Dragonfly)
 
 ## Donate
 
