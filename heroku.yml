@@ -1,5 +1,3 @@
 build:
   docker:
-    web: src/WebScreenshot/Dockerfile
-run:
-  web: cd /app && dotnet WebScreenshot.dll --urls="http://*:$PORT"
+    web: deploy/heroku/Dockerfile
