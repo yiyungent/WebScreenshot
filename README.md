@@ -15,12 +15,12 @@ ASP.NET Core + Selenium 实现 网页截图
 
 ## Quick Start
 
-### 方式1: 使用 Railway 免费部署
+### 方式1: 使用 Railway 免费 一键部署
 
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template?code=0SqcQn&referralCode=8eKBDA)
 
 
-### 方式2: 使用 Heroku 免费部署
+### 方式2: 使用 Heroku 免费 一键部署
 
 [![Deploy on Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/yiyungent/WebScreenshot)
 
@@ -43,7 +43,7 @@ docker run -d -p 5004:80 -e ASPNETCORE_URLS="http://*:80" --name webscreenshot y
 
 - https://webscreenshot.up.railway.app/?url=https://moeci.com&windowWidth=1280
   - 浏览器窗口宽 1280, 高度自动延展
-- https://webscreenshot.up.railway.app/?url=https://www.antmoe.com/posts/21874bc7/&jsurl=https://gitee.com/yiyunLearnRepos/test/raw/master/www.antmoe.com/posts.js
+- https://webscreenshot.up.railway.app/?url=https://www.antmoe.com/posts/614360dd/&jsurl=https://gitee.com/yiyunLearnRepos/test/raw/master/www.antmoe.com/posts.js
   - 注入 js, 修改页面
 
 - https://webscreenshot-yiyun.herokuapp.com/?url=https://www.google.com
