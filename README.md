@@ -37,6 +37,10 @@ ASP.NET Core + Selenium 实现 网页截图 以及 获取网页源代码 等
   - 指定区域获取网页源代码 
   - `%20` 为空格 UrlEncode 后
 
+> 注意:      
+> 若需获取 `JavaScript` 执行后的网页源代码, 你可能需要 `forceWait`,    
+> 并且尽量使用 `cssSelector`, 例如 `cssSelector=body`
+
 ## API 文档
 
 - https://webscreenshot.onrender.com/swagger
