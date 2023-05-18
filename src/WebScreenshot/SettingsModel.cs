@@ -7,5 +7,7 @@
         public string ChromeDriverDirectory { get; set; } = "/app/tools/selenium/";
 
         public string CacheModel { get; set; }
+
+        public bool Debug { get; set; } = false;
     }
 }

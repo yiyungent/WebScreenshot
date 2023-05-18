@@ -57,11 +57,17 @@ namespace WebScreenshot.Controllers
                     _settingsModel.CacheModel = "memory";
                     break;
             }
+            string debugStr = Environment.GetEnvironmentVariable("WebScreenshot_Debug".ToUpper()) ?? "";
+            if (!string.IsNullOrEmpty(debugStr) && bool.TryParse(debugStr, out bool debug))
+            {
+                _settingsModel.Debug = debug;
+            }
             #endregion
 
         }
         #endregion
 
+        #region Actions
         /// <summary>
         /// 获取 Web 截图
         /// </summary>
@@ -70,12 +76,15 @@ namespace WebScreenshot.Controllers
         /// <param name="windowWidth">浏览器窗口 宽</param>
         /// <param name="windowHeight">浏览器窗口 高</param>
         /// <param name="wait">隐式等待 秒数</param>
-        /// <returns>若成功, 返回 image/png 截图</returns>
+        /// <param name="forceWait">强制等待 秒数</param>
+        /// <param name="mode">模式: screenshot 截图(默认); html 获取网页源代码</param>
+        /// <param name="cssSelector">CSS 选择器, 选中目标区域</param>
+        /// <returns>若成功, screenshot 则返回 image/png 截图, html 则返回网页源代码</returns>
         [Route("")]
         [HttpGet]
-        [Produces("image/png")]
+        //[Produces("image/png")]
         public async Task<ActionResult> Get([FromQuery] string url = "", [FromQuery] string jsurl = "",
-            [FromQuery] int windowWidth = 0, [FromQuery] int windowHeight = 0, [FromQuery] int wait = 0, [FromQuery] int forceWait = 0)
+            [FromQuery] int windowWidth = 0, [FromQuery] int windowHeight = 0, [FromQuery] int wait = 0, [FromQuery] int forceWait = 0, string mode = "screenshot", string cssSelector = null)
         {
             #region 检查url
             if (string.IsNullOrEmpty(url) || (!url.StartsWith("http://") && !url.StartsWith("https://")))
@@ -136,36 +145,65 @@ namespace WebScreenshot.Controllers
             _forceWait = forceWait;
             #endregion
 
+            string exStr = string.Empty;
             try
             {
+                #region cache
                 byte[] cacheEntry = null;
-
                 switch (_settingsModel.CacheModel)
                 {
                     case "memory":
-                        MemoryCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr);
+                        MemoryCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
                         break;
                     case "file":
-                        FileCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr);
+                        FileCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
                         break;
                     default:
-                        MemoryCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr);
+                        MemoryCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
                         break;
                 }
+                #endregion
 
+                ActionResult actionResult = null;
 
-                return File(cacheEntry, "image/png", true);
+                #region mode
+                switch (mode)
+                {
+                    case "screenshot":
+                        actionResult = File(cacheEntry, "image/png", true);
+                        break;
+                    case "html":
+                        actionResult = Content(System.Text.Encoding.UTF8.GetString(cacheEntry), "text/html", Encoding.UTF8);
+                        break;
+                    default:
+                        actionResult = File(cacheEntry, "image/png", true);
+                        break;
+                }
+                #endregion
+
+                return actionResult;
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
+                if (_settingsModel.Debug)
+                {
+                    exStr = ex.ToString();
+                }
             }
 
-            return Content("出错啦!");
+            return Content(@$"<div>
+                                <h2>Error!</h2>
+                                <pre>{exStr}</pre>
+                              </div", "text/html", Encoding.UTF8);
         }
+        #endregion
 
+        #region Helpers
+
+        #region Cache
         [NonAction]
-        private void FileCache(out byte[] cacheEntry, string url, string jsurl, string jsStr)
+        private void FileCache(out byte[] cacheEntry, string url, string jsurl, string jsStr, string mode, string cssSelector)
         {
             string key = Request.QueryString.Value ?? "";
 
@@ -183,7 +221,7 @@ namespace WebScreenshot.Controllers
             if (!System.IO.File.Exists(screenshotCacheFilePath))
             {
                 // Key not in cache, so get data.
-                cacheEntry = SaveScreenshot(url: url, jsurl: jsurl, jsStr: jsStr);
+                cacheEntry = Save(url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
 
                 // Save data in cache.
                 System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
@@ -199,7 +237,7 @@ namespace WebScreenshot.Controllers
 
                     // 注意: 一定要先删除, 直接覆盖, 不会更新 文件创建时间
                     System.IO.File.Delete(screenshotCacheFilePath);
-                    cacheEntry = SaveScreenshot(url: url, jsurl: jsurl, jsStr: jsStr);
+                    cacheEntry = Save(url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
                     System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
                 }
                 else
@@ -213,7 +251,7 @@ namespace WebScreenshot.Controllers
         }
 
         [NonAction]
-        private void MemoryCache(out byte[] cacheEntry, string url, string jsurl, string jsStr)
+        private void MemoryCache(out byte[] cacheEntry, string url, string jsurl, string jsStr, string mode, string cssSelector)
         {
             string key = Request.QueryString.Value ?? "";
 
@@ -225,7 +263,7 @@ namespace WebScreenshot.Controllers
             if (!_cache.TryGetValue(screenshotCacheKey, out cacheEntry))
             {
                 // Key not in cache, so get data.
-                cacheEntry = SaveScreenshot(url: url, jsurl: jsurl, jsStr: jsStr);
+                cacheEntry = Save(url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
 
                 // Set cache options.
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
@@ -238,9 +276,10 @@ namespace WebScreenshot.Controllers
             }
             #endregion
         }
+        #endregion
 
         [NonAction]
-        private byte[] SaveScreenshot(string url, string jsurl, string jsStr)
+        private byte[] Save(string url, string jsurl, string jsStr, string mode, string cssSelector)
         {
             #region 初始化参数选项
             var options = new ChromeOptions();
@@ -316,18 +355,57 @@ namespace WebScreenshot.Controllers
             }
             #endregion
 
+            byte[] rtnBytes = null;
+
             #region 截图
-            // 保存截图
-            // https://www.selenium.dev/documentation/webdriver/browser/windows/#takescreenshot
-            Screenshot screenshot = (driver as ITakesScreenshot).GetScreenshot();
-            // 直接用 图片数据
-            byte[] rtnBytes = screenshot.AsByteArray;
+            Action screenshotAction = () =>
+            {
+                // 保存截图
+                // https://www.selenium.dev/documentation/webdriver/browser/windows/#takescreenshot
+                Screenshot screenshot = null;
+                if (!string.IsNullOrEmpty(cssSelector))
+                {
+                    var webElement = driver.FindElement(By.CssSelector(cssSelector));
+                    // Screenshot for the element
+                    screenshot = (webElement as ITakesScreenshot).GetScreenshot();
+                }
+                else
+                {
+                    screenshot = (driver as ITakesScreenshot).GetScreenshot();
+                }
+                // 直接用 图片数据
+                rtnBytes = screenshot.AsByteArray;
+            };
             #endregion
+            switch (mode)
+            {
+                case "screenshot":
+                    screenshotAction();
+                    break;
+                case "html":
+                    string source = string.Empty;
+                    if (!string.IsNullOrEmpty(cssSelector))
+                    {
+                        var webElement = driver.FindElement(By.CssSelector(cssSelector));
+                        source = webElement.Text;
+                    }
+                    else
+                    {
+                        source = driver.PageSource;
+                    }
+                    rtnBytes = System.Text.Encoding.UTF8.GetBytes(source);
+                    break;
+                default:
+                    screenshotAction();
+                    break;
+            }
 
             driver.Quit();
 
             return rtnBytes;
         }
+
+        #endregion
 
     }
 
