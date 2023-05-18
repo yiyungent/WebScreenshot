@@ -17,6 +17,7 @@ namespace WebScreenshot.Controllers
     [Route("")]
     public class HomeController : Controller
     {
+        #region Fields
         private IMemoryCache _cache;
         private readonly SettingsModel _settingsModel;
 
@@ -25,6 +26,7 @@ namespace WebScreenshot.Controllers
         private int _windowHeight;
         private int _wait;
         private int _forceWait;
+        #endregion 
         #endregion
 
         #region Ctor
@@ -357,7 +359,7 @@ namespace WebScreenshot.Controllers
 
             byte[] rtnBytes = null;
 
-            #region 截图
+            #region 截图方法
             Action screenshotAction = () =>
             {
                 // 保存截图
@@ -377,6 +379,8 @@ namespace WebScreenshot.Controllers
                 rtnBytes = screenshot.AsByteArray;
             };
             #endregion
+
+            #region mode
             switch (mode)
             {
                 case "screenshot":
@@ -387,7 +391,11 @@ namespace WebScreenshot.Controllers
                     if (!string.IsNullOrEmpty(cssSelector))
                     {
                         var webElement = driver.FindElement(By.CssSelector(cssSelector));
-                        source = webElement.Text;
+                        // https://www.selenium.dev/documentation/webdriver/elements/information/#text-content
+                        // 这样获取到的 为 InnerText 没有 HTML标签
+                        //source = webElement.Text;
+                        // https://www.selenium.dev/documentation/webdriver/elements/information/#fetching-attributes-or-properties
+                        source = webElement.GetAttribute("innerHTML");
                     }
                     else
                     {
@@ -399,6 +407,7 @@ namespace WebScreenshot.Controllers
                     screenshotAction();
                     break;
             }
+            #endregion
 
             driver.Quit();
 
