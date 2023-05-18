@@ -1,9 +1,9 @@
 # Heroku Dockerfile
 
-FROM yiyungent/webscreenshot:latest
+FROM yiyungent/webscreenshot:v2.0.0
 
-ADD heroku-entrypoint.sh /heroku-entrypoint.sh
+# 处于 /app 目录下
+ADD heroku-entrypoint.sh ./heroku-entrypoint.sh
+RUN chmod +x ./heroku-entrypoint.sh
 
-RUN chmod +x /heroku-entrypoint.sh
-
-ENTRYPOINT ["/bin/sh", "/heroku-entrypoint.sh"]
+ENTRYPOINT ["/bin/sh", "./heroku-entrypoint.sh"]

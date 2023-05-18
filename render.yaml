@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: webscreenshot
+    env: docker
+    plan: free
+    repo: https://github.com/yiyungent/WebScreenshot.git
+    dockerfilePath: ./deploy/render/Dockerfile
+    dockerContext: ./deploy/render/
+    healthCheckPath: /?url=https://google.com # hanging
+    envVars:
+      - key: WEBSCREENSHOT_CACHEMINUTES
+        value: 60
+      - key: WEBSCREENSHOT_CACHEMODE
+        value: file
+    autoDeploy: true
