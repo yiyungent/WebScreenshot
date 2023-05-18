@@ -15,9 +15,9 @@ ASP.NET Core + Selenium 实现 网页截图 以及 获取网页源代码 等
 
 ## Demo
 
-- https://webscreenshot.onrender.com/?url=https://moeci.com
+- https://webscreenshot.onrender.com/?url=https://blog.imlete.cn
 
-- https://webscreenshot.onrender.com/?url=https://moeci.com&windowWidth=1280
+- https://webscreenshot.onrender.com/?url=https://blog.imlete.cn&windowWidth=1280
   - 浏览器窗口宽 1280, 高度自动延展
 - https://webscreenshot.onrender.com/?url=https://www.antmoe.com/posts/614360dd/&jsurl=https://gitee.com/yiyunLearnRepos/test/raw/master/www.antmoe.com/posts.js
   - 注入 js, 修改页面
