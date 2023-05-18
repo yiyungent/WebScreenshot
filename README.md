@@ -6,9 +6,10 @@
 [![repo size](https://img.shields.io/github/repo-size/yiyungent/WebScreenshot.svg?style=flat)]()
 [![LICENSE](https://img.shields.io/github/license/yiyungent/WebScreenshot.svg?style=flat)](https://github.com/yiyungent/WebScreenshot/blob/main/LICENSE)
 [![QQ Group](https://img.shields.io/badge/QQ%20Group-894031109-deepgreen)](https://jq.qq.com/?_wv=1027&k=q5R82fYN)
+[![docker pulls](https://img.shields.io/docker/pulls/yiyungent/webscreenshot)](https://hub.docker.com/r/yiyungent/webscreenshot)
+[![docker version](https://img.shields.io/docker/v/yiyungent/webscreenshot/latest?label=docker%20image%20ver.)](https://hub.docker.com/r/yiyungent/webscreenshot)
 
 ## Introduce
-
 
 ASP.NET Core + Selenium 实现 网页截图 以及 获取网页源代码 等
 
@@ -24,6 +25,17 @@ ASP.NET Core + Selenium 实现 网页截图 以及 获取网页源代码 等
 - https://webscreenshot.onrender.com/?url=https://www.google.com
 - https://webscreenshot.onrender.com/?url=https://manga.bilibili.com/mc27189/367947?from=manga_detail&windowWidth=1280&forceWait=20
   - 强制等待 20 秒
+
+- https://webscreenshot.onrender.com/?url=https://xiaokang.me&mode=html
+  - 使用 mode=html 获取网页源代码 
+
+- https://webscreenshot.onrender.com/?url=https://xiaokang.me&cssSelector=.container%20.page%20.segment
+  - 指定区域截图 
+  - `%20` 为空格 UrlEncode 后
+
+- https://webscreenshot.onrender.com/?url=https://xiaokang.me&cssSelector=.container%20.page%20.segment&mode=html 
+  - 指定区域获取网页源代码 
+  - `%20` 为空格 UrlEncode 后
 
 ## API 文档
 
