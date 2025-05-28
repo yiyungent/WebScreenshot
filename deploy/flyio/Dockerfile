@@ -1,6 +1,6 @@
 # fly.io Dockerfile
 
-FROM yiyungent/webscreenshot:v2.0.1
+FROM yiyungent/webscreenshot:v2.0.2
 
 ADD flyio-entrypoint.sh ./flyio-entrypoint.sh
 RUN chmod +x ./flyio-entrypoint.sh

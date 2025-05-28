@@ -291,6 +291,7 @@ namespace WebScreenshot.Controllers
             options.AddArgument("--headless");
             options.AddArgument("--ignore-certificate-errors");
             options.AddArgument("--disable-gpu");
+            options.AddArgument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36");
 
             // Chrome 的启动文件路径
             // 只要正确安装的就不需要指定
