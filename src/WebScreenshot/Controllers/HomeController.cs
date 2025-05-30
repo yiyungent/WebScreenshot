@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using Microsoft.Extensions.Caching.Memory;
+using WebScreenshot.Models;
+using OpenQA.Selenium.Support.UI;
 
 namespace WebScreenshot.Controllers
 {
@@ -26,6 +28,7 @@ namespace WebScreenshot.Controllers
         private int _windowHeight;
         private int _wait;
         private int _forceWait;
+        private int _jsExecutedForceWait;
         #endregion 
         #endregion
 
@@ -70,6 +73,143 @@ namespace WebScreenshot.Controllers
         #endregion
 
         #region Actions
+        [Route("")]
+        [HttpPost]
+        public async Task<ActionResult> Post([FromBody] PostRequestModel requestModel)
+        {
+            Console.WriteLine("requestModel:");
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(requestModel));
+
+            var url = requestModel.url;
+            var jsurl = requestModel.jsurl;
+            var windowWidth = requestModel.windowWidth;
+            var windowHeight = requestModel.windowHeight;
+            var wait = requestModel.wait;
+            var forceWait = requestModel.forceWait;
+            var jsExecutedForceWait = requestModel.jsExecutedForceWait;
+            var mode = requestModel.mode;
+            var cssSelector = requestModel.cssSelector;
+
+            #region 检查url
+            if (string.IsNullOrEmpty(url) || (!url.StartsWith("http://") && !url.StartsWith("https://")))
+            {
+                return Content("非法 url");
+            }
+            #endregion
+
+            #region 检查jsurl/jsStr
+            string jsStr = requestModel.jsStr;
+            if (!string.IsNullOrEmpty(jsurl))
+            {
+                if (!jsurl.StartsWith("http://") && !jsurl.StartsWith("https://"))
+                {
+                    return Content("非法 jsurl");
+                }
+                // 合法 jsurl
+                try
+                {
+                    jsStr = Utils.HttpUtil.HttpGet(url: jsurl);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("获取 jsurl 失败");
+                    Console.WriteLine(ex.ToString());
+
+                    return Content("获取 jsurl 失败");
+                }
+            }
+            #endregion
+
+            #region 检查 windowWidith,windowHeight
+            if (windowWidth < 0)
+            {
+                return Content("非法 windowWidth");
+            }
+            if (windowHeight < 0)
+            {
+                return Content("非法 windowHeight");
+            }
+            _windowWidth = windowWidth;
+            _windowHeight = windowHeight;
+            #endregion
+
+            #region 检查 wait
+            if (wait < 0)
+            {
+                return Content("非法 wait");
+            }
+            _wait = wait;
+            #endregion
+
+            #region 检查 forceWait
+            if (forceWait < 0)
+            {
+                return Content("非法 forceWait");
+            }
+            _forceWait = forceWait;
+            #endregion
+
+            #region 检查 jsExecutedForceWait
+            if (jsExecutedForceWait < 0)
+            {
+                return Content("非法 jsExecutedForceWait");
+            }
+            _jsExecutedForceWait = jsExecutedForceWait;
+            #endregion
+
+            string exStr = string.Empty;
+            try
+            {
+                #region cache
+                byte[] cacheEntry = null;
+                switch (_settingsModel.CacheModel)
+                {
+                    case "memory":
+                        MemoryCache(out cacheEntry, url: url, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
+                        break;
+                    case "file":
+                        FileCache(out cacheEntry, url: url, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
+                        break;
+                    default:
+                        MemoryCache(out cacheEntry, url: url, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
+                        break;
+                }
+                #endregion
+
+                ActionResult actionResult = null;
+
+                #region mode
+                switch (mode)
+                {
+                    case "screenshot":
+                        actionResult = File(cacheEntry, "image/png", true);
+                        break;
+                    case "html":
+                        actionResult = Content(System.Text.Encoding.UTF8.GetString(cacheEntry), "text/html", Encoding.UTF8);
+                        break;
+                    default:
+                        actionResult = File(cacheEntry, "image/png", true);
+                        break;
+                }
+                #endregion
+
+                return actionResult;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                if (_settingsModel.Debug)
+                {
+                    exStr = ex.ToString();
+                }
+            }
+
+            return Content(@$"<div>
+                                <h2>Error!</h2>
+                                <pre>{exStr}</pre>
+                              </div", "text/html", Encoding.UTF8);
+        }
+
         /// <summary>
         /// 获取 Web 截图
         /// </summary>
@@ -81,12 +221,17 @@ namespace WebScreenshot.Controllers
         /// <param name="forceWait">强制等待 秒数</param>
         /// <param name="mode">模式: screenshot 截图(默认); html 获取网页源代码</param>
         /// <param name="cssSelector">CSS 选择器, 选中目标区域</param>
+        /// <param name="jsExecutedForceWait">js 执行后强制等待 秒数</param>
         /// <returns>若成功, screenshot 则返回 image/png 截图, html 则返回网页源代码</returns>
         [Route("")]
         [HttpGet]
         //[Produces("image/png")]
-        public async Task<ActionResult> Get([FromQuery] string url = "", [FromQuery] string jsurl = "",
-            [FromQuery] int windowWidth = 0, [FromQuery] int windowHeight = 0, [FromQuery] int wait = 0, [FromQuery] int forceWait = 0, string mode = "screenshot", string cssSelector = null)
+        public async Task<ActionResult> Get(
+            [FromQuery] string url = "", [FromQuery] string jsurl = "",
+            [FromQuery] int windowWidth = 0, [FromQuery] int windowHeight = 0,
+            [FromQuery] int wait = 0, [FromQuery] int forceWait = 0,
+            [FromQuery] string mode = "screenshot", [FromQuery] string cssSelector = null,
+            [FromQuery] int jsExecutedForceWait = 0)
         {
             #region 检查url
             if (string.IsNullOrEmpty(url) || (!url.StartsWith("http://") && !url.StartsWith("https://")))
@@ -147,6 +292,14 @@ namespace WebScreenshot.Controllers
             _forceWait = forceWait;
             #endregion
 
+            #region 检查 jsExecutedForceWait
+            if (jsExecutedForceWait < 0)
+            {
+                return Content("非法 jsExecutedForceWait");
+            }
+            _jsExecutedForceWait = jsExecutedForceWait;
+            #endregion
+
             string exStr = string.Empty;
             try
             {
@@ -155,13 +308,13 @@ namespace WebScreenshot.Controllers
                 switch (_settingsModel.CacheModel)
                 {
                     case "memory":
-                        MemoryCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
+                        MemoryCache(out cacheEntry, url: url, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
                         break;
                     case "file":
-                        FileCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
+                        FileCache(out cacheEntry, url: url, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
                         break;
                     default:
-                        MemoryCache(out cacheEntry, url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
+                        MemoryCache(out cacheEntry, url: url, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
                         break;
                 }
                 #endregion
@@ -205,7 +358,7 @@ namespace WebScreenshot.Controllers
 
         #region Cache
         [NonAction]
-        private void FileCache(out byte[] cacheEntry, string url, string jsurl, string jsStr, string mode, string cssSelector)
+        private void FileCache(out byte[] cacheEntry, string url, string jsStr, string mode, string cssSelector)
         {
             string key = Request.QueryString.Value ?? "";
 
@@ -223,7 +376,7 @@ namespace WebScreenshot.Controllers
             if (!System.IO.File.Exists(screenshotCacheFilePath))
             {
                 // Key not in cache, so get data.
-                cacheEntry = Save(url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
+                cacheEntry = Save(url: url, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
 
                 // Save data in cache.
                 System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
@@ -239,7 +392,7 @@ namespace WebScreenshot.Controllers
 
                     // 注意: 一定要先删除, 直接覆盖, 不会更新 文件创建时间
                     System.IO.File.Delete(screenshotCacheFilePath);
-                    cacheEntry = Save(url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
+                    cacheEntry = Save(url: url, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
                     System.IO.File.WriteAllBytes(screenshotCacheFilePath, cacheEntry);
                 }
                 else
@@ -253,7 +406,7 @@ namespace WebScreenshot.Controllers
         }
 
         [NonAction]
-        private void MemoryCache(out byte[] cacheEntry, string url, string jsurl, string jsStr, string mode, string cssSelector)
+        private void MemoryCache(out byte[] cacheEntry, string url, string jsStr, string mode, string cssSelector)
         {
             string key = Request.QueryString.Value ?? "";
 
@@ -265,7 +418,7 @@ namespace WebScreenshot.Controllers
             if (!_cache.TryGetValue(screenshotCacheKey, out cacheEntry))
             {
                 // Key not in cache, so get data.
-                cacheEntry = Save(url: url, jsurl: jsurl, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
+                cacheEntry = Save(url: url, jsStr: jsStr, mode: mode, cssSelector: cssSelector);
 
                 // Set cache options.
                 var cacheEntryOptions = new MemoryCacheEntryOptions()
@@ -280,8 +433,9 @@ namespace WebScreenshot.Controllers
         }
         #endregion
 
+        #region Save
         [NonAction]
-        private byte[] Save(string url, string jsurl, string jsStr, string mode, string cssSelector)
+        private byte[] Save(string url, string jsStr, string mode, string cssSelector)
         {
             #region 初始化参数选项
             var options = new ChromeOptions();
@@ -351,10 +505,17 @@ namespace WebScreenshot.Controllers
             {
                 Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {url} : 注入 jsStr:");
                 Console.WriteLine("--------------------------------------------------------------------------------------------");
-                Console.WriteLine($"jsStr 来自: jsurl: {jsurl}");
+                Console.WriteLine($"jsStr: {jsStr}");
                 Console.WriteLine("--------------------------------------------------------------------------------------------");
 
                 driver.ExecuteScript(jsStr);
+
+                #region 执行 js 后强制 wait
+                if (_jsExecutedForceWait > 0)
+                {
+                    Thread.Sleep(TimeSpan.FromSeconds(_jsExecutedForceWait));
+                }
+                #endregion
             }
             #endregion
 
@@ -414,6 +575,7 @@ namespace WebScreenshot.Controllers
 
             return rtnBytes;
         }
+        #endregion
 
         #endregion
 

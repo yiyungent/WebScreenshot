@@ -1,6 +1,6 @@
 # Railway Dockerfile
 
-FROM yiyungent/webscreenshot:v2.0.2
+FROM yiyungent/webscreenshot:v2.0.3
 
 # 处于 /app 目录下
 ADD railway-entrypoint.sh ./railway-entrypoint.sh
